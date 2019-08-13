@@ -1,23 +1,10 @@
-
-
-// import 'algorithm.dart';
 import 'package:flutter/material.dart';
-// import 'package:map_view/map_view.dart';
-// import 'main_page2.dart';
-// import 'settings_page.dart';
 import 'package:flutter/services.dart';
-// import 'maps_page.dart';
 import 'globals.dart' as globals;
-// import 'vibLevel_page.dart';
-// import 'haptic_page.dart';
-// import 'tutorial.dart';
-// import 'package:flutter_blue/flutter_blue.dart';
-// import 'bluetooth_page.dart';
 import 'res_details.dart';
-import 'dart:io';
-import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:location/location.dart';
 
 class MainPage extends StatefulWidget {
   @override
@@ -28,7 +15,6 @@ class MainPageState extends State<MainPage> {
   int index = 1;
   final scaffoldKey = new GlobalKey<ScaffoldState>();
   final formKey = new GlobalKey<FormState>();
-  dynamic _borderRadius = new BorderRadius.circular(10.0);
   String searchRes;
   bool currentlySearching = false;
   final GlobalKey<ScaffoldState> _scaffoldstate =
@@ -40,6 +26,11 @@ class MainPageState extends State<MainPage> {
   Icon _searchIcon = new Icon(Icons.search);
   Widget _appBarTitle = new Text('Search Example');
   List names = new List();
+  List ids = new List();
+  double lat, long;
+  LocationData currentLocation;
+  var location = new Location();
+  String error;
 
   MainPageState() {
     _filter.addListener(() {
@@ -59,20 +50,23 @@ class MainPageState extends State<MainPage> {
   void initState() {
     this.main();
     super.initState();
+    
+  }
+  
+  getLoc() async {
+    try {
+      currentLocation = await location.getLocation();
+    } on PlatformException catch (e) {
+      if (e.code == 'PERMISSION_DENIED') {
+        error = 'Permission denied';
+      }
+      currentLocation = null;
+    }
+    lat = currentLocation.latitude;
+    long = currentLocation.longitude;
   }
 
   Widget _buildList() {
-    if (_searchText.isNotEmpty) {
-      List tempList = new List();
-      for (int i = 0; i < filteredNames.length; i++) {
-        if (filteredNames[i]
-            .toLowerCase()
-            .contains(_searchText.toLowerCase())) {
-          tempList.add(filteredNames[i]);
-        }
-      }
-      filteredNames = tempList;
-    }
     return new FutureBuilder(
       future: main(),
       builder: (context, snapshot) {
@@ -83,8 +77,9 @@ class MainPageState extends State<MainPage> {
               title: Text(filteredNames[index]),
               onTap: () => {
                 Navigator.push(context,
-              MaterialPageRoute(builder: (context) => ResDetailPage())),
-                globals.search = filteredNames[index],
+                    MaterialPageRoute(builder: (context) => ResDetailPage())),
+                globals.searchname = filteredNames[index],
+                globals.searchid = ids[index],
               },
             );
           },
@@ -95,16 +90,12 @@ class MainPageState extends State<MainPage> {
 
   Widget _buildBottomNav() {
     return new BottomNavigationBar(
-      currentIndex: 1,
+      currentIndex: 0,
       onTap: (index) {
         this.index = index;
         if (index == 0) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => ResDetailPage()));
         }
         if (index == 2) {
-          // Navigator.push(context,
-          //     MaterialPageRoute(builder: (context) => BluetoothPage()));
         }
       },
       items: <BottomNavigationBarItem>[
@@ -180,34 +171,37 @@ class MainPageState extends State<MainPage> {
       child: Container(
         decoration: BoxDecoration(color: Colors.redAccent),
         child: ListTile(
-        contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-        leading: Container(
-          padding: EdgeInsets.only(right: 12.0),
-          decoration: new BoxDecoration(
-              border: new Border(
-                  right: new BorderSide(width: 1.0, color: Colors.white24))),
-          child: Icon(Icons.restaurant, color: Colors.white),
-        ),
-        title: Text(
-            name, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(dist.toString() + "miles", style: TextStyle(color: Colors.white)),
-        trailing:
-            Icon(Icons.keyboard_arrow_right, color: Colors.white, size: 15.0)),
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+            leading: Container(
+              padding: EdgeInsets.only(right: 12.0),
+              decoration: new BoxDecoration(
+                  border: new Border(
+                      right:
+                          new BorderSide(width: 1.0, color: Colors.white24))),
+              child: Icon(Icons.restaurant, color: Colors.white),
+            ),
+            title: Text(
+              name,
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            subtitle: Text(dist.toString() + "miles",
+                style: TextStyle(color: Colors.white)),
+            trailing: Icon(Icons.keyboard_arrow_right,
+                color: Colors.white, size: 15.0)),
       ),
     );
   }
 
   Widget _buildBar(BuildContext context) {
-    return new AppBar(
-      centerTitle: true,
-      title: _appBarTitle,
-      actions: [new IconButton(
+    return new AppBar(centerTitle: true, title: _appBarTitle, actions: [
+      new IconButton(
         alignment: Alignment.center,
         icon: _searchIcon,
         onPressed: _searchPressed,
-      ),]
-    );
+      ),
+    ]);
   }
 
   @override
@@ -219,42 +213,22 @@ class MainPageState extends State<MainPage> {
       resizeToAvoidBottomPadding: false,
       appBar: _buildBar(context),
       body: Stack(
-        children: <Widget>[ 
+        children: <Widget>[
           SingleChildScrollView(
             child: Column(
               children: <Widget>[
                 SizedBox(height: 20.0),
-                Text("Recommended:",
-                    style: TextStyle(
-                        fontWeight: FontWeight.normal, fontSize: 15.0)),
-                SizedBox(height: 20.0),
-                Container(
-                  height: 150.0,
-                  child: ListView.builder(
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    itemCount: 4,
-                    itemBuilder: (BuildContext context, int index) {
-                      return _buildCard("KFC", 20.0);
-                    },
-                  ),
-                ),
-                SizedBox(height: 20),
                 Text("Restaurants Near You:",
                     style: TextStyle(
                         fontWeight: FontWeight.normal, fontSize: 15.0)),
                 SizedBox(height: 20.0),
-                Container(
-                  height: 259.0,
-                  child: 
                 ListView.builder(
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    itemCount: 10,
-                    itemBuilder: (BuildContext context, int index) {
-                      return _buildCard("KFC", 20.0);
-                    },
-                  ),
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  itemCount: 10,
+                  itemBuilder: (BuildContext context, int index) {
+                    return _buildCard("KFC", 20.0);
+                  },
                 ),
               ],
             ),
@@ -268,15 +242,13 @@ class MainPageState extends State<MainPage> {
   }
 
   Widget overlayContainer() {
-    if (currentlySearching == true){
+    if (currentlySearching == true) {
       return Container(
-            color: Colors.white,
-            child: _buildList(),
-          );
-    }
-    else
-      return Container(
-          );
+        color: Colors.white,
+        child: _buildList(),
+      );
+    } else
+      return Container();
   }
 
   void _searchPressed() {
@@ -291,7 +263,6 @@ class MainPageState extends State<MainPage> {
       } else {
         this._searchIcon = new Icon(Icons.search);
         this._appBarTitle = new Text('Search');
-        // filteredNames = names;
         _filter.clear();
         currentlySearching = false;
       }
@@ -299,19 +270,28 @@ class MainPageState extends State<MainPage> {
   }
 
   main() async {
-    String link = "https://api.yelp.com/v3/autocomplete?text=" + _searchText;
+    getLoc();
+    print(lat);
+    String link = "https://api.yelp.com/v3/autocomplete?text=" + _searchText + "&latitude=" + lat.toString() + "&longitude=" + long.toString();
     Uri uri = Uri.parse(link);
 
     var req = new http.Request("GET", uri);
     req.headers['Authorization'] =
-        'Bearer R3cZok5aDPZXwYwynJU9KrTx9QpqhBbncwKC2HAgtTvdHISyKiIAncxRmx6xLNr4nFFnwaQZRdTriepxbVQpqy0vdP62_ARSKXbxLf3qM7k3pVlez5iIdCTCmH8_XXYx';
+        'Bearer endKOtxDzmquiDBFQKImIss0K8oBAsSaatw84j7Z_mdayis_dfwdaAeiAGgARwPu7I9i3rYzQcNTVA8JL05phkq7O7elOZ5fLYjliuElh5ac8QyeJ9Lsdn871yE2XXYx';
     var res = await req.send();
 
     var obj = jsonDecode(await res.stream.bytesToString());
-    List terms = [];
-    for (var term in obj['terms']) terms.add(term['text']);
+
+    List name = [];
+    List id = [];
+    for (var term in obj['businesses']) {
+      print(term['name']);
+      name.add(term['name']);
+      id.add(term['id']);}
+    
     setState(() {
-      names = terms;
+      names = name;
+      ids = id;
       filteredNames = names;
       print(filteredNames);
     });

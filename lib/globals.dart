@@ -1,21 +1,13 @@
 library my_prj.globals;
 
-String search;
+String searchname;
+String searchid;
 
 class Restaurant {
   String name;
-  // String imagePath;
-  String location;
-  String recDish1;
-  String recDish2;
-  String recDish3;
+  String iD;
 
-  Restaurant(this.name, this.location, this.recDish1, this.recDish2, this.recDish3);
+  Restaurant(this.name, this.iD);
 }
 
-List<Restaurant> lol = [Restaurant("KFC", "Arcadia", "Dumplings", "Pizza", "Meatballs")];
-
-getRests() async {
-  return lol;
-}
 
