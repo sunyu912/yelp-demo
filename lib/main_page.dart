@@ -72,40 +72,14 @@ class MainPageState extends State<MainPage> {
     long = currentLocation.longitude;
   }
 
-  // Widget _buildList() {
-  //   return new FutureBuilder(
-  //     future: main(),
-  //     builder: (context, snapshot) {
-  //       switch (snapshot.connectionState) {
-  //         case ConnectionState.none:
-  //         case ConnectionState.waiting:
-  //           // return Center(child: CircularProgressIndicator());
-  //           return new Container();
-  //         default: return ListView.builder(
-  //         itemCount: filteredNames.length,
-  //         itemBuilder: (BuildContext context, int index) {
-  //           return new ListTile(
-  //             title: Text(filteredNames[index]),
-  //             onTap: () => {
-  //               Navigator.push(context,
-  //                   MaterialPageRoute(builder: (context) => ResDetailPage())),
-  //               globals.searchname = filteredNames[index],
-  //               globals.searchid = ids[index],
-  //             },
-  //           );
-  //         },
-  //       );
-  //       }
-  //     },
-  //   );
-  // }
-
     Widget _buildList() {
     return new FutureBuilder(
       future: _main(),
       builder: (context, snapshot) {
         if(snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator();
+          return Center(
+            child: CircularProgressIndicator()
+          );
          } else if(snapshot.hasData) {
            return ListView.builder(
           itemCount: snapshot.data[0].length,
@@ -115,8 +89,6 @@ class MainPageState extends State<MainPage> {
               onTap: () => {
                 Navigator.push(context,
                     MaterialPageRoute(builder: (context) => ResDetailPage())),
-                // globals.searchname = filteredNames[index],
-                // globals.searchid = ids[index],
                 globals.searchname = snapshot.data[0][index],
                 globals.searchid = snapshot.data[1][index],
               },
@@ -128,33 +100,6 @@ class MainPageState extends State<MainPage> {
          }
     });
   }
-
-  //   Widget _buildList() {
-  //   return new FutureBuilder(
-  //     future: _main(),
-  //     builder: (context, snapshot) {
-  //       switch (snapshot.connectionState) {
-  //         case ConnectionState.none:
-  //         case ConnectionState.waiting:
-  //           return Center(child: CircularProgressIndicator());
-  //         default: return ListView.builder(
-  //         itemCount: _future.length,
-  //         itemBuilder: (BuildContext context, int index) {
-  //           return new ListTile(
-  //             title: Text(_future[index]),
-  //             onTap: () => {
-  //               Navigator.push(context,
-  //                   MaterialPageRoute(builder: (context) => ResDetailPage())),
-  //               globals.searchname = _future[index],
-  //               globals.searchid = ids[index],
-  //             },
-  //           );
-  //         },
-  //       );
-  //       }
-  //     },
-  //   );
-  // }
 
   Widget _buildBottomNav() {
     return new BottomNavigationBar(
@@ -337,37 +282,6 @@ class MainPageState extends State<MainPage> {
     });
   }
 
-main() {
-    return this._memoizer.runOnce(() async {
-    print('running main');
-    getLoc();
-    print(lat);
-    String link = "https://api.yelp.com/v3/autocomplete?text=" + _searchText + "&latitude=" + lat.toString() + "&longitude=" + long.toString();
-    Uri uri = Uri.parse(link);
-
-    var req = new http.Request("GET", uri);
-    req.headers['Authorization'] =
-        'Bearer endKOtxDzmquiDBFQKImIss0K8oBAsSaatw84j7Z_mdayis_dfwdaAeiAGgARwPu7I9i3rYzQcNTVA8JL05phkq7O7elOZ5fLYjliuElh5ac8QyeJ9Lsdn871yE2XXYx';
-    var res = await req.send();
-
-    var obj = jsonDecode(await res.stream.bytesToString());
-
-    List name = [];
-    List id = [];
-    for (var term in obj['businesses']) {
-      print('business names: ' + term['name']);
-      name.add(term['name']);
-      id.add(term['id']);}
-    
-    setState(() {
-      names = name;
-      ids = id;
-      filteredNames = names;
-      print('filter names: '+ filteredNames.toString());
-    });
-  });
-  }
-
   _main() async {
     getLoc();
     print(lat);
@@ -387,15 +301,7 @@ main() {
       print('business names: ' + term['name']);
       name.add(term['name']);
       id.add(term['id']);}
-    print('business names hehehe: $name');
     return [name, id];
-    
-    // setState(() {
-    //   names = name;
-    //   ids = id;
-    //   filteredNames = names;
-    //   print('filter names: '+ filteredNames.toString());
-    // });
 
   }
 
