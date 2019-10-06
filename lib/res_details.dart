@@ -17,12 +17,17 @@ class ResDetailPageState extends State<ResDetailPage> {
   List filteredNames = new List(); // names filtered by search text
   Icon _searchIcon = new Icon(Icons.search);
   Widget _appBarTitle = new Text('Search Example');
+  Future<Map> businessDetails;
+
+
 
   @override
   void initState() {
-    this.main();
+    // buisnessDetails = {};
+    businessDetails = this.main();
     this.build(context);
     super.initState();
+    
   }
 
   Widget buildName(String name, String id) {
@@ -141,43 +146,117 @@ class ResDetailPageState extends State<ResDetailPage> {
     return Scaffold(
       appBar: _buildBar(context),
       body: Center(
-        child:
-          Container(
-            child: new FutureBuilder(
-              future: main(),
-              builder: (context, snapshot) {
-                return ListView.builder(
-                  itemCount: filteredNames.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return new ListTile(
-                      title: Text(filteredNames[index]),
-                      onTap: () => {},
-                    );
-                  },
-                );
-              },
+        child: Column(
+          children: <Widget>[
+            Container(
+              child: new FutureBuilder(
+                future: main(),
+                builder: (context, snapshot) {
+                  if(snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator(),);
+                  } else if(snapshot.hasData) {
+                    return Column(children: <Widget>[
+                      new Text(snapshot.data['name']),
+                      Container(
+                        child: new Image(image: NetworkImage(snapshot.data['image'])),
+                        constraints: BoxConstraints(
+                          maxHeight: 250
+
+                        ),
+                        )
+                    ],);
+                  } else {
+                    return new Container();
+                  }
+                },
+              ),
             ),
-          ),
+            Container(
+              child: new FutureBuilder(
+                future: main(),
+                builder: (BuildContext context, AsyncSnapshot snapshot) {
+                if(snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator(),);
+                } else if(snapshot.hasData) {
+                  print('has data: ' + snapshot.data['food'].toString());
+                  return Expanded(child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: 5,
+                    itemBuilder: (BuildContext context, int index) {
+                      return new ListTile(
+                        title: Text(snapshot.data['food'][index]['name']),
+                        subtitle: Text((snapshot.data['food'][index]['sentiment']).toStringAsFixed(2)),
+                      );
+                    }  
+                  ),);
+                } else {
+                  print('no data');
+                  return new Container();
+                }
+               },
+              ),
+            ),
+          ],)
       ),
       drawer: _buildDrawer(),
       bottomNavigationBar: _buildBottomNav(),
     );
   }
 
+  //   @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     appBar: _buildBar(context),
+  //     body: Center(
+  //       child: Column(
+  //         children: <Widget>[
+  //           new Container(
+  //             child: Text(businessDetails['name']),)
+  //         ],)
+          
+  //     ),
+  //     drawer: _buildDrawer(),
+  //     bottomNavigationBar: _buildBottomNav(),
+  //   );
+  // }
+
 
   main() async {
-    String link = "https://food-extraction2--sunyu912.repl.co/getreview/" +
-        globals.searchid;
+   
+    String link = "https://api.yelp.com/v3/businesses/" + globals.searchid;
+    // String link = "https://food-extraction2--sunyu912.repl.co/getreview/" +
+    //     globals.searchid;
+     print('get link: ' + link);
     Uri uri = Uri.parse(link);
 
     var req = new http.Request("GET", uri);
+        req.headers['Authorization'] =
+        'Bearer endKOtxDzmquiDBFQKImIss0K8oBAsSaatw84j7Z_mdayis_dfwdaAeiAGgARwPu7I9i3rYzQcNTVA8JL05phkq7O7elOZ5fLYjliuElh5ac8QyeJ9Lsdn871yE2XXYx';
     var res = await req.send();
 
     var obj = jsonDecode(await res.stream.bytesToString());
-    List reps = [];
-    for (var term in obj) reps.add(term['name']);
-    setState(() {
-      filteredNames = reps;
-    });
+    Map details = {};
+    details['name'] = obj['name'];
+    details['image'] = obj['image_url'];
+
+    String reviewLink = "http://ec2-52-53-176-212.us-west-1.compute.amazonaws.com/getreviewurl?url=" + obj['url'];
+    Uri reviewURI = Uri.parse(reviewLink);
+    var req2 = new http.Request("GET", reviewURI);
+    var res2 = await req2.send();
+    var reviews =jsonDecode(await res2.stream.bytesToString());
+    print('reviews: ' + reviews.toString());
+    details['food'] = new List();
+    for(var i = 0; i < 5; i++) {
+      details['food'].add(reviews[i]);
+    }
+    print('details: ' + details.toString());
+    return details;
+    // setState(() {
+    //   buisnessDetails = details;
+    // });
+    
+    // setState(() {
+    //   filteredNames = reps;
+    // });
   }
 }

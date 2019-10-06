@@ -294,11 +294,13 @@ class MainPageState extends State<MainPage> {
     var res = await req.send();
 
     var obj = jsonDecode(await res.stream.bytesToString());
+    
 
     List name = [];
     List id = [];
     for (var term in obj['businesses']) {
       print('business names: ' + term['name']);
+      print('business id: ' + term['id']);
       name.add(term['name']);
       id.add(term['id']);}
     return [name, id];
