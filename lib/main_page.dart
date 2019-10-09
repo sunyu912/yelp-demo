@@ -22,7 +22,7 @@ class MainPageState extends State<MainPage> {
       new GlobalKey<ScaffoldState>();
 
 
-  final AsyncMemoizer _memoizer = AsyncMemoizer();
+  // final AsyncMemoizer _memoizer = AsyncMemoizer();
   final TextEditingController _filter = new TextEditingController();
   String _searchText = "";
   List filteredNames = new List(); // names filtered by search text
@@ -33,6 +33,9 @@ class MainPageState extends State<MainPage> {
   double lat, long;
   LocationData currentLocation;
   var location = new Location();
+  bool isLoading = true;
+  List nearbyRestaurants = [];
+  
   String error;
 
   // Future<List> _future;
@@ -54,10 +57,9 @@ class MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    this._main();
-    // _future = _main();
-    
+    // this._main();
   }
+
   
   getLoc() async {
     try {
@@ -177,13 +179,20 @@ class MainPageState extends State<MainPage> {
     ));
   }
 
-  Widget _buildCard(String name, double dist) {
+  Widget _buildCard(String name, String dist, id) {
+    String miles = (double.parse(dist) / 1000).toStringAsFixed(2);
     return Card(
       elevation: 8.0,
       margin: new EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
       child: Container(
         decoration: BoxDecoration(color: Colors.redAccent),
         child: ListTile(
+          onTap: () => {
+            Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => ResDetailPage())),
+                globals.searchname = name,
+                globals.searchid = id,
+          },
             contentPadding:
                 EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
             leading: Container(
@@ -199,7 +208,7 @@ class MainPageState extends State<MainPage> {
               style:
                   TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
-            subtitle: Text(dist.toString() + "miles",
+            subtitle: Text(miles + "miles",
                 style: TextStyle(color: Colors.white)),
             trailing: Icon(Icons.keyboard_arrow_right,
                 color: Colors.white, size: 15.0)),
@@ -235,14 +244,24 @@ class MainPageState extends State<MainPage> {
                     style: TextStyle(
                         fontWeight: FontWeight.normal, fontSize: 15.0)),
                 SizedBox(height: 20.0),
-                ListView.builder(
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  itemCount: 10,
-                  itemBuilder: (BuildContext context, int index) {
-                    return _buildCard("KFC", 20.0);
-                  },
-                ),
+                FutureBuilder(
+                  future: loadNearbyRestaurants(),
+                  builder: (context, snapshot) {
+                    if(snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator(),);
+                    } else if(snapshot.hasData) {
+                      return ListView.builder(
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+                        itemCount: 5,
+                        itemBuilder: (BuildContext context, int index) {
+                          return _buildCard(snapshot.data[index]['name'], snapshot.data[index]['distance'].toStringAsFixed(2), snapshot.data[index]['id']);
+                        },
+                      );
+                    } else {
+                      return new Container();
+                    }
+                  })
               ],
             ),
           ),
@@ -280,6 +299,25 @@ class MainPageState extends State<MainPage> {
         currentlySearching = false;
       }
     });
+  }
+
+  Future loadNearbyRestaurants() async {
+    getLoc();
+    String link = "https://api.yelp.com/v3/businesses/search?term=restaurants&latitude=" + lat.toString() + "&longitude=" + long.toString() + "&limit=5";
+    Uri uri = Uri.parse(link);
+    var req = new http.Request("GET", uri);
+    req.headers['Authorization'] =
+        'Bearer endKOtxDzmquiDBFQKImIss0K8oBAsSaatw84j7Z_mdayis_dfwdaAeiAGgARwPu7I9i3rYzQcNTVA8JL05phkq7O7elOZ5fLYjliuElh5ac8QyeJ9Lsdn871yE2XXYx';
+    var res = await req.send();
+    List _nearbyRestaurants = [];
+    var result = jsonDecode(await res.stream.bytesToString());
+    for(var business in result['businesses']) {
+      _nearbyRestaurants.add(business);
+    }
+    
+    print('nearby restaurants: ' + _nearbyRestaurants.toString());
+    return _nearbyRestaurants;
+
   }
 
   _main() async {

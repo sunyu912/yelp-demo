@@ -17,14 +17,14 @@ class ResDetailPageState extends State<ResDetailPage> {
   List filteredNames = new List(); // names filtered by search text
   Icon _searchIcon = new Icon(Icons.search);
   Widget _appBarTitle = new Text('Search Example');
-  Future<Map> businessDetails;
+  // Future<Map> businessDetails;
 
 
 
   @override
   void initState() {
     // buisnessDetails = {};
-    businessDetails = this.main();
+    // businessDetails = this.main();
     this.build(context);
     super.initState();
     
@@ -153,7 +153,11 @@ class ResDetailPageState extends State<ResDetailPage> {
                 future: main(),
                 builder: (context, snapshot) {
                   if(snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator(),);
+                    return Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: CircularProgressIndicator(),
+                  ));
                   } else if(snapshot.hasData) {
                     return Column(children: <Widget>[
                       new Text(snapshot.data['name']),
@@ -176,7 +180,11 @@ class ResDetailPageState extends State<ResDetailPage> {
                 future: main(),
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
                 if(snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator(),);
+                  return Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24.0),
+                      child: CircularProgressIndicator(),
+                  ),);
                 } else if(snapshot.hasData) {
                   print('has data: ' + snapshot.data['food'].toString());
                   return Expanded(child: ListView.builder(
@@ -239,7 +247,7 @@ class ResDetailPageState extends State<ResDetailPage> {
     details['name'] = obj['name'];
     details['image'] = obj['image_url'];
 
-    String reviewLink = "http://ec2-52-53-176-212.us-west-1.compute.amazonaws.com/getreviewurl?url=" + obj['url'];
+    String reviewLink = "https://rectangularselfassuredconsultant--five-nine.repl.co/getreviewurl?url=" + obj['url'];
     Uri reviewURI = Uri.parse(reviewLink);
     var req2 = new http.Request("GET", reviewURI);
     var res2 = await req2.send();
