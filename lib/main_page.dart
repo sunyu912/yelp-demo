@@ -5,7 +5,7 @@ import 'res_details.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart';
-import 'package:async/async.dart';
+
 
 class MainPage extends StatefulWidget {
   @override
@@ -13,7 +13,7 @@ class MainPage extends StatefulWidget {
 }
 
 class MainPageState extends State<MainPage> {
-  int index = 1;
+  int index = 0;
   final scaffoldKey = new GlobalKey<ScaffoldState>();
   final formKey = new GlobalKey<FormState>();
   String searchRes;
@@ -57,7 +57,13 @@ class MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    // this._main();
+    _main();
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      index = index;
+    });
   }
 
   
@@ -105,18 +111,12 @@ class MainPageState extends State<MainPage> {
 
   Widget _buildBottomNav() {
     return new BottomNavigationBar(
-      currentIndex: 0,
-      onTap: (index) {
-        this.index = index;
-        if (index == 0) {
-        }
-        if (index == 2) {
-        }
-      },
+      currentIndex: index,
+      onTap: _onItemTapped,
       items: <BottomNavigationBarItem>[
         new BottomNavigationBarItem(
           icon: new Icon(Icons.home),
-          title: new Text("Home"),
+          title: new Text("Home"),     
         ),
         new BottomNavigationBarItem(
           icon: new Icon(Icons.search),
@@ -225,6 +225,8 @@ class MainPageState extends State<MainPage> {
       ),
     ]);
   }
+
+  
 
   @override
   Widget build(BuildContext context) {

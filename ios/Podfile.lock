@@ -4,17 +4,17 @@ PODS:
     - Flutter
 
 DEPENDENCIES:
-  - Flutter (from `.symlinks/flutter/ios`)
+  - Flutter (from `.symlinks/flutter/ios-release`)
   - location (from `.symlinks/plugins/location/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
-    :path: ".symlinks/flutter/ios"
+    :path: ".symlinks/flutter/ios-release"
   location:
     :path: ".symlinks/plugins/location/ios"
 
 SPEC CHECKSUMS:
-  Flutter: 58dd7d1b27887414a370fcccb9e645c08ffd7a6a
+  Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   location: 3a2eed4dd2fab25e7b7baf2a9efefe82b512d740
 
 PODFILE CHECKSUM: 7fb83752f59ead6285236625b82473f90b1cb932

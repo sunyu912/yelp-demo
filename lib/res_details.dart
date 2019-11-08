@@ -3,10 +3,12 @@ import 'globals.dart' as globals;
 import 'main_page.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:async/async.dart';
 
 class ResDetailPage extends StatefulWidget {
   @override
   ResDetailPageState createState() => new ResDetailPageState();
+  
 }
 
 class ResDetailPageState extends State<ResDetailPage> {
@@ -17,7 +19,8 @@ class ResDetailPageState extends State<ResDetailPage> {
   List filteredNames = new List(); // names filtered by search text
   Icon _searchIcon = new Icon(Icons.search);
   Widget _appBarTitle = new Text('Search Example');
-  // Future<Map> businessDetails;
+  Future businessDetails;
+  final AsyncMemoizer _memoizer = AsyncMemoizer();
 
 
 
@@ -247,7 +250,7 @@ class ResDetailPageState extends State<ResDetailPage> {
     details['name'] = obj['name'];
     details['image'] = obj['image_url'];
 
-    String reviewLink = "https://rectangularselfassuredconsultant--five-nine.repl.co/getreviewurl?url=" + obj['url'];
+    String reviewLink = "https://food-extraction2-2.sunyu912.repl.co/getreviewurl?url=" + obj['url'];
     Uri reviewURI = Uri.parse(reviewLink);
     var req2 = new http.Request("GET", reviewURI);
     var res2 = await req2.send();
@@ -259,12 +262,37 @@ class ResDetailPageState extends State<ResDetailPage> {
     }
     print('details: ' + details.toString());
     return details;
-    // setState(() {
-    //   buisnessDetails = details;
-    // });
-    
-    // setState(() {
-    //   filteredNames = reps;
-    // });
   }
+  // main() {
+  //  return this._memoizer.runOnce(() async {
+  //     String link = "https://api.yelp.com/v3/businesses/" + globals.searchid;
+  //   // String link = "https://food-extraction2--sunyu912.repl.co/getreview/" +
+  //   //     globals.searchid;
+  //    print('get link: ' + link);
+  //   Uri uri = Uri.parse(link);
+
+  //   var req = new http.Request("GET", uri);
+  //       req.headers['Authorization'] =
+  //       'Bearer endKOtxDzmquiDBFQKImIss0K8oBAsSaatw84j7Z_mdayis_dfwdaAeiAGgARwPu7I9i3rYzQcNTVA8JL05phkq7O7elOZ5fLYjliuElh5ac8QyeJ9Lsdn871yE2XXYx';
+  //   var res = await req.send();
+
+  //   var obj = jsonDecode(await res.stream.bytesToString());
+  //   Map details = {};
+  //   details['name'] = obj['name'];
+  //   details['image'] = obj['image_url'];
+
+  //   String reviewLink = "https://rectangularselfassuredconsultant--five-nine.repl.co/getreviewurl?url=" + obj['url'];
+  //   Uri reviewURI = Uri.parse(reviewLink);
+  //   var req2 = new http.Request("GET", reviewURI);
+  //   var res2 = await req2.send();
+  //   var reviews =jsonDecode(await res2.stream.bytesToString());
+  //   print('reviews: ' + reviews.toString());
+  //   details['food'] = new List();
+  //   for(var i = 0; i < 5; i++) {
+  //     details['food'].add(reviews[i]);
+  //   }
+  //   print('details: ' + details.toString());
+  //   return details;
+  //  }
+  //  );}
 }
