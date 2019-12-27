@@ -250,7 +250,7 @@ class ResDetailPageState extends State<ResDetailPage> {
     details['name'] = obj['name'];
     details['image'] = obj['image_url'];
 
-    String reviewLink = "https://food-extraction2-2.sunyu912.repl.co/getreviewurl?url=" + obj['url'];
+    String reviewLink = "https://carolyn-nina-project.herokuapp.com/getreviewurl?url=" + obj['url'];
     Uri reviewURI = Uri.parse(reviewLink);
     var req2 = new http.Request("GET", reviewURI);
     var res2 = await req2.send();
